@@ -87,7 +87,9 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
         m_middleRect      {other.m_middleRect},
         m_id              {other.m_id},
         m_copyCallback    {other.m_copyCallback},
-        m_destructCallback{other.m_destructCallback}
+        m_destructCallback{other.m_destructCallback},
+        m_scalingType     {other.m_scalingType},
+        m_nineSliceRatio  {other.m_nineSliceRatio}
     {
         if (getData() && (m_copyCallback != nullptr))
             m_copyCallback(getData());
@@ -105,7 +107,9 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
         m_middleRect      {std::move(other.m_middleRect)},
         m_id              {std::move(other.m_id)},
         m_copyCallback    {std::move(other.m_copyCallback)},
-        m_destructCallback{std::move(other.m_destructCallback)}
+        m_destructCallback{std::move(other.m_destructCallback)},
+        m_scalingType     {std::move(other.m_scalingType)},
+        m_nineSliceRatio  {std::move(other.m_nineSliceRatio)}
     {
         other.m_data = nullptr;
         other.m_copyCallback = nullptr;
@@ -138,6 +142,8 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
             std::swap(m_id,               temp.m_id);
             std::swap(m_copyCallback,     temp.m_copyCallback);
             std::swap(m_destructCallback, temp.m_destructCallback);
+            std::swap(m_scalingType,      temp.m_scalingType);
+            std::swap(m_nineSliceRatio,   temp.m_nineSliceRatio);
         }
 
         return *this;
@@ -159,6 +165,8 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
             m_id               = std::move(other.m_id);
             m_copyCallback     = std::move(other.m_copyCallback);
             m_destructCallback = std::move(other.m_destructCallback);
+            m_scalingType      = std::move(other.m_scalingType);
+            m_nineSliceRatio   = std::move(other.m_nineSliceRatio);
 
             other.m_data = nullptr;
             other.m_copyCallback = nullptr;
@@ -367,6 +375,26 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
     UIntRect Texture::getMiddleRect() const
     {
         return m_middleRect;
+    }
+
+    void Texture::setScalingType(Texture::ScalingType scalingType)
+    {
+        m_scalingType = scalingType;
+    }
+
+    void Texture::setNineSliceRatio(float ratio)
+    {
+        m_nineSliceRatio = ratio;
+    }
+
+    Texture::ScalingType Texture::getScalingType() const
+    {
+        return m_scalingType;
+    }
+
+    float Texture::getNineSliceRatio() const
+    {
+        return m_nineSliceRatio;
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

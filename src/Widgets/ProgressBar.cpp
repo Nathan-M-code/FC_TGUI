@@ -477,23 +477,23 @@ namespace tgui
     {
         if (m_spriteBackground.isSet())
         {
-            switch (m_spriteBackground.getScalingType())
+            switch (m_spriteBackground.getTexture().getScalingType())
             {
-            case Sprite::ScalingType::Normal:
+            case Texture::ScalingType::Normal:
                 return {m_spriteFill.getTexture().getImageSize().x * getInnerSize().x / m_spriteBackground.getTexture().getImageSize().x,
                         m_spriteFill.getTexture().getImageSize().y * getInnerSize().y / m_spriteBackground.getTexture().getImageSize().y};
 
-            case Sprite::ScalingType::Horizontal:
+            case Texture::ScalingType::Horizontal:
                 return {getInnerSize().x - ((m_spriteBackground.getTexture().getImageSize().x - m_spriteFill.getTexture().getImageSize().x) * (getInnerSize().y / m_spriteBackground.getTexture().getImageSize().y)),
                         m_spriteFill.getTexture().getImageSize().y * getInnerSize().y / m_spriteBackground.getTexture().getImageSize().y};
 
-            case Sprite::ScalingType::Vertical:
+            case Texture::ScalingType::Vertical:
                 return {m_spriteFill.getTexture().getImageSize().x * getInnerSize().x / m_spriteBackground.getTexture().getImageSize().x,
                         getInnerSize().y - ((m_spriteBackground.getTexture().getImageSize().y - m_spriteFill.getTexture().getImageSize().y) * (getInnerSize().x / m_spriteBackground.getTexture().getImageSize().x))};
 
-            case Sprite::ScalingType::NineSlice:
-                return {getInnerSize().x - (m_spriteBackground.getTexture().getImageSize().x - m_spriteFill.getTexture().getImageSize().x),
-                        getInnerSize().y - (m_spriteBackground.getTexture().getImageSize().y - m_spriteFill.getTexture().getImageSize().y)};
+            // case Texture::ScalingType::NineSlice:
+            //     return {getInnerSize().x - (m_spriteBackground.getTexture().getImageSize().x - m_spriteFill.getTexture().getImageSize().x),
+            //             getInnerSize().y - (m_spriteBackground.getTexture().getImageSize().y - m_spriteFill.getTexture().getImageSize().y)};
             }
         }
 

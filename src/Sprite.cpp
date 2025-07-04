@@ -52,8 +52,7 @@ namespace tgui
         m_vertexColor(other.m_vertexColor),
         m_opacity    (other.m_opacity),
         m_rotation   (other.m_rotation),
-        m_position   (other.m_position),
-        m_scalingType(other.m_scalingType)
+        m_position   (other.m_position)
     {
         if (m_texture.getData() && m_texture.getData()->svgImage)
             updateVertices();
@@ -71,8 +70,7 @@ namespace tgui
         m_vertexColor(std::move(other.m_vertexColor)),
         m_opacity    (std::move(other.m_opacity)),
         m_rotation   (std::move(other.m_rotation)),
-        m_position   (std::move(other.m_position)),
-        m_scalingType(std::move(other.m_scalingType))
+        m_position   (std::move(other.m_position))
     {
         if (m_svgTexture)
         {
@@ -114,7 +112,6 @@ namespace tgui
             std::swap(m_opacity,     temp.m_opacity);
             std::swap(m_rotation,    temp.m_rotation);
             std::swap(m_position,    temp.m_position);
-            std::swap(m_scalingType, temp.m_scalingType);
         }
 
         return *this;
@@ -139,7 +136,6 @@ namespace tgui
             m_opacity     = std::move(other.m_opacity);
             m_rotation    = std::move(other.m_rotation);
             m_position    = std::move(other.m_position);
-            m_scalingType = std::move(other.m_scalingType);
 
             if (m_svgTexture)
             {
@@ -297,15 +293,15 @@ namespace tgui
         Vector2f pixel;
         FloatRect middleRect = FloatRect{m_texture.getMiddleRect()};
         Vector2u imageSize = m_texture.getImageSize();
-        switch (m_scalingType)
+        switch (m_texture.getScalingType())
         {
-            case ScalingType::Normal:
+            case Texture::ScalingType::Normal:
             {
                 pixel.x = pos.x / m_size.x * imageSize.x;
                 pixel.y = pos.y / m_size.y * imageSize.y;
                 break;
             }
-            case ScalingType::Horizontal:
+            case Texture::ScalingType::Horizontal:
             {
                 if (pos.x >= m_size.x - (imageSize.x - middleRect.left - middleRect.width) * (m_size.y / imageSize.y))
                 {
@@ -325,7 +321,7 @@ namespace tgui
                 pixel.y = pos.y / m_size.y * imageSize.y;
                 break;
             }
-            case ScalingType::Vertical:
+            case Texture::ScalingType::Vertical:
             {
                 if (pos.y >= m_size.y - (imageSize.y - middleRect.top - middleRect.height) * (m_size.x / imageSize.x))
                 {
@@ -345,113 +341,50 @@ namespace tgui
                 pixel.x = pos.x / m_size.x * imageSize.x;
                 break;
             }
-            case ScalingType::NineSlice:
-            {
-                if (pos.x < middleRect.left)
-                    pixel.x = pos.x;
-                else if (pos.x >= m_size.x - (imageSize.x - middleRect.width - middleRect.left))
-                    pixel.x = pos.x - m_size.x + imageSize.x;
-                else
-                {
-                    float xDiff = (pos.x - middleRect.left) / (m_size.x - (imageSize.x - middleRect.width)) * middleRect.width;
-                    pixel.x = middleRect.left + xDiff;
-                }
+            // case Texture::ScalingType::NineSlice:
+            // {
+            //     if (pos.x < middleRect.left)
+            //         pixel.x = pos.x;
+            //     else if (pos.x >= m_size.x - (imageSize.x - middleRect.width - middleRect.left))
+            //         pixel.x = pos.x - m_size.x + imageSize.x;
+            //     else
+            //     {
+            //         float xDiff = (pos.x - middleRect.left) / (m_size.x - (imageSize.x - middleRect.width)) * middleRect.width;
+            //         pixel.x = middleRect.left + xDiff;
+            //     }
 
-                if (pos.y < middleRect.top)
-                    pixel.y = pos.y;
-                else if (pos.y >= m_size.y - (imageSize.y - middleRect.height - middleRect.top))
-                    pixel.y = pos.y - m_size.y + imageSize.y;
-                else
-                {
-                    float yDiff = (pos.y - middleRect.top) / (m_size.y - (imageSize.y - middleRect.height)) * middleRect.height;
-                    pixel.y = middleRect.top + yDiff;
-                }
+            //     if (pos.y < middleRect.top)
+            //         pixel.y = pos.y;
+            //     else if (pos.y >= m_size.y - (imageSize.y - middleRect.height - middleRect.top))
+            //         pixel.y = pos.y - m_size.y + imageSize.y;
+            //     else
+            //     {
+            //         float yDiff = (pos.y - middleRect.top) / (m_size.y - (imageSize.y - middleRect.height)) * middleRect.height;
+            //         pixel.y = middleRect.top + yDiff;
+            //     }
 
-                break;
-            }
+            //     break;
+            // }
         };
 
         return m_texture.isTransparentPixel({static_cast<unsigned int>(pixel.x), static_cast<unsigned int>(pixel.y)});
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    Sprite::ScalingType Sprite::getScalingType() const
-    {
-        return m_scalingType;
-    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     void Sprite::updateVertices()
     {
         // Figure out how the image is scaled best
-        Vector2f textureSize;
-        FloatRect middleRect;
-        Vector2u texCoordOffset;
-        if (m_texture.getData()->svgImage)
-        {
-            if (!m_svgTexture)
-            {
-                m_svgTexture = getBackend()->createTexture();
-
-                TGUI_ASSERT(isBackendSet(), "Backend must still exist when SVG texture is loaded in Sprite");
-                getBackend()->registerSvgSprite(this);
-            }
-
-            const Vector2u svgTextureSize{
-                static_cast<unsigned int>(std::round(getSize().x)),
-                static_cast<unsigned int>(std::round(getSize().y))};
-
-            m_texture.getData()->svgImage->rasterize(*m_svgTexture, svgTextureSize);
-
-            m_scalingType = ScalingType::Normal;
-            textureSize = getSize();
-        }
-        else
-        {
-            texCoordOffset = m_texture.getPartRect().getPosition();
-            textureSize = Vector2f{m_texture.getPartRect().getSize()};
-            middleRect = FloatRect{m_texture.getMiddleRect()};
-            if (middleRect == FloatRect(0, 0, textureSize.x, textureSize.y))
-            {
-                m_scalingType = ScalingType::Normal;
-            }
-            else if (middleRect.height == textureSize.y)
-            {
-                if (m_size.x >= (textureSize.x - middleRect.width) * (m_size.y / textureSize.y))
-                    m_scalingType = ScalingType::Horizontal;
-                else
-                    m_scalingType = ScalingType::Normal;
-            }
-            else if (middleRect.width == textureSize.x)
-            {
-                if (m_size.y >= (textureSize.y - middleRect.height) * (m_size.x / textureSize.x))
-                    m_scalingType = ScalingType::Vertical;
-                else
-                    m_scalingType = ScalingType::Normal;
-            }
-            else
-            {
-                if (m_size.x >= textureSize.x - middleRect.width)
-                {
-                    if (m_size.y >= textureSize.y - middleRect.height)
-                        m_scalingType = ScalingType::NineSlice;
-                    else
-                        m_scalingType = ScalingType::Horizontal;
-                }
-                else if (m_size.y >= (textureSize.y - middleRect.height) * (m_size.x / textureSize.x))
-                    m_scalingType = ScalingType::Vertical;
-                else
-                    m_scalingType = ScalingType::Normal;
-            }
-        }
-
+        Vector2f textureSize = Vector2f{m_texture.getPartRect().getSize()};
+        FloatRect middleRect = FloatRect{m_texture.getMiddleRect()};
+        Vector2u texCoordOffset = m_texture.getPartRect().getPosition();
+        
         // Calculate the vertices based on the way we are scaling
         const Vertex::Color vertexColor(Color::applyOpacity(m_vertexColor, m_opacity));
-        switch (m_scalingType)
+        switch (m_texture.getScalingType())
         {
-        case ScalingType::Normal:
+        case Texture::ScalingType::Normal:
             ///////////
             // 0---1 //
             // |   | //
@@ -469,7 +402,7 @@ namespace tgui
             };
             break;
 
-        case ScalingType::Horizontal:
+        case Texture::ScalingType::Horizontal:
             ///////////////////////
             // 0---2-------4---6 //
             // |   |       |   | //
@@ -495,7 +428,7 @@ namespace tgui
             };
             break;
 
-        case ScalingType::Vertical:
+        case Texture::ScalingType::Vertical:
             ///////////
             // 0---1 //
             // |   | //
@@ -526,8 +459,9 @@ namespace tgui
                 5, 6, 7
             };
             break;
+        
+        case Texture::ScalingType::ScaledNineSlice: {
 
-        case ScalingType::NineSlice:
             ///////////////////////////////
             // 0----1-----------11----12 //
             // |    |            |    |  //
@@ -539,23 +473,60 @@ namespace tgui
             // |    |            |    |  //
             // 6----7------------8----15 //
             ///////////////////////////////
+            //FC_TGUI:
+            //corners are scaled to keep same ratio as given in middleRect
+
+            float ratio = m_texture.getNineSliceRatio();
+
+            // x:
+            // 0  -> 0
+            // 1  -> middleRect.left*ratio
+            // 11 -> m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio
+            // 12 -> m_size.x
+
+            // y:
+            // 0  -> 0
+            // 2  -> middleRect.top*ratio
+            // 4  -> m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio
+            // 6  -> m_size.y
+            
+            //PREVIOUS:
+            // m_vertices = {
+            //     {{0, 0}, vertexColor, {0, 0}},
+            //     {{middleRect.left, 0}, vertexColor, {middleRect.left, 0}},
+            //     {{0, middleRect.top}, vertexColor, {0, middleRect.top}},
+            //     {{middleRect.left, middleRect.top}, vertexColor, {middleRect.left, middleRect.top}},
+            //     {{0, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {0, middleRect.top + middleRect.height}},
+            //     {{middleRect.left, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left, middleRect.top + middleRect.height}},
+            //     {{0, m_size.y}, vertexColor, {0, textureSize.y}},
+            //     {{middleRect.left, m_size.y}, vertexColor, {middleRect.left, textureSize.y}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y}, vertexColor, {middleRect.left + middleRect.width, textureSize.y}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left + middleRect.width, middleRect.top + middleRect.height}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), middleRect.top}, vertexColor, {middleRect.left + middleRect.width, middleRect.top}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), 0}, vertexColor, {middleRect.left + middleRect.width, 0}},
+            //     {{m_size.x, 0}, vertexColor, {textureSize.x, 0}},
+            //     {{m_size.x, middleRect.top}, vertexColor, {textureSize.x, middleRect.top}},
+            //     {{m_size.x, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {textureSize.x, middleRect.top + middleRect.height}},
+            //     {{m_size.x, m_size.y}, vertexColor, {textureSize.x, textureSize.y}},
+            // };
+        
             m_vertices = {
-                {{0, 0}, vertexColor, {0, 0}},
-                {{middleRect.left, 0}, vertexColor, {middleRect.left, 0}},
-                {{0, middleRect.top}, vertexColor, {0, middleRect.top}},
-                {{middleRect.left, middleRect.top}, vertexColor, {middleRect.left, middleRect.top}},
-                {{0, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {0, middleRect.top + middleRect.height}},
-                {{middleRect.left, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left, middleRect.top + middleRect.height}},
-                {{0, m_size.y}, vertexColor, {0, textureSize.y}},
-                {{middleRect.left, m_size.y}, vertexColor, {middleRect.left, textureSize.y}},
-                {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y}, vertexColor, {middleRect.left + middleRect.width, textureSize.y}},
-                {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left + middleRect.width, middleRect.top + middleRect.height}},
-                {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), middleRect.top}, vertexColor, {middleRect.left + middleRect.width, middleRect.top}},
-                {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), 0}, vertexColor, {middleRect.left + middleRect.width, 0}},
-                {{m_size.x, 0}, vertexColor, {textureSize.x, 0}},
-                {{m_size.x, middleRect.top}, vertexColor, {textureSize.x, middleRect.top}},
-                {{m_size.x, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {textureSize.x, middleRect.top + middleRect.height}},
-                {{m_size.x, m_size.y}, vertexColor, {textureSize.x, textureSize.y}},
+                /* 0*/ {{0, 0}, vertexColor, {0, 0}},
+                /* 1*/ {{middleRect.left*ratio, 0}, vertexColor, {middleRect.left, 0}},
+                /* 2*/ {{0, middleRect.top*ratio}, vertexColor, {0, middleRect.top}},
+                /* 3*/ {{middleRect.left*ratio, middleRect.top*ratio}, vertexColor, {middleRect.left, middleRect.top}},
+                /* 4*/ {{0, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {0, middleRect.top + middleRect.height}},
+                /* 5*/ {{middleRect.left*ratio, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {middleRect.left, middleRect.top + middleRect.height}},
+                /* 6*/ {{0, m_size.y}, vertexColor, {0, textureSize.y}},
+                /* 7*/ {{middleRect.left*ratio, m_size.y}, vertexColor, {middleRect.left, textureSize.y}},
+                /* 8*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, m_size.y}, vertexColor, {middleRect.left + middleRect.width, textureSize.y}},
+                /* 9*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {middleRect.left + middleRect.width, middleRect.top + middleRect.height}},
+                /*10*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, middleRect.top*ratio}, vertexColor, {middleRect.left + middleRect.width, middleRect.top}},
+                /*11*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, 0}, vertexColor, {middleRect.left + middleRect.width, 0}},
+                /*12*/ {{m_size.x, 0}, vertexColor, {textureSize.x, 0}},
+                /*13*/ {{m_size.x, middleRect.top*ratio}, vertexColor, {textureSize.x, middleRect.top}},
+                /*14*/ {{m_size.x, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {textureSize.x, middleRect.top + middleRect.height}},
+                /*15*/ {{m_size.x, m_size.y}, vertexColor, {textureSize.x, textureSize.y}}
             };
             m_indices = {
                 0, 2, 1,
@@ -578,6 +549,98 @@ namespace tgui
                 8, 15, 14
             };
             break;
+        }
+
+        case Texture::ScalingType::AutoScaledNineSlice: {
+
+            ///////////////////////////////
+            // 0----1-----------11----12 //
+            // |    |            |    |  //
+            // 2----3-----------10----13 //
+            // |    |            |    |  //
+            // |    |            |    |  //
+            // |    |            |    |  //
+            // 4----5------------9----14 //
+            // |    |            |    |  //
+            // 6----7------------8----15 //
+            ///////////////////////////////
+            //FC_TGUI:
+            //corners are scaled to keep same ratio as given in middleRect
+
+            float ratio = std::min(m_size.x/textureSize.x, m_size.y/textureSize.y);
+
+            // x:
+            // 0  -> 0
+            // 1  -> middleRect.left*ratio
+            // 11 -> m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio
+            // 12 -> m_size.x
+
+            // y:
+            // 0  -> 0
+            // 2  -> middleRect.top*ratio
+            // 4  -> m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio
+            // 6  -> m_size.y
+            
+            //PREVIOUS:
+            // m_vertices = {
+            //     {{0, 0}, vertexColor, {0, 0}},
+            //     {{middleRect.left, 0}, vertexColor, {middleRect.left, 0}},
+            //     {{0, middleRect.top}, vertexColor, {0, middleRect.top}},
+            //     {{middleRect.left, middleRect.top}, vertexColor, {middleRect.left, middleRect.top}},
+            //     {{0, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {0, middleRect.top + middleRect.height}},
+            //     {{middleRect.left, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left, middleRect.top + middleRect.height}},
+            //     {{0, m_size.y}, vertexColor, {0, textureSize.y}},
+            //     {{middleRect.left, m_size.y}, vertexColor, {middleRect.left, textureSize.y}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y}, vertexColor, {middleRect.left + middleRect.width, textureSize.y}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {middleRect.left + middleRect.width, middleRect.top + middleRect.height}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), middleRect.top}, vertexColor, {middleRect.left + middleRect.width, middleRect.top}},
+            //     {{m_size.x - (textureSize.x - middleRect.left - middleRect.width), 0}, vertexColor, {middleRect.left + middleRect.width, 0}},
+            //     {{m_size.x, 0}, vertexColor, {textureSize.x, 0}},
+            //     {{m_size.x, middleRect.top}, vertexColor, {textureSize.x, middleRect.top}},
+            //     {{m_size.x, m_size.y - (textureSize.y - middleRect.top - middleRect.height)}, vertexColor, {textureSize.x, middleRect.top + middleRect.height}},
+            //     {{m_size.x, m_size.y}, vertexColor, {textureSize.x, textureSize.y}},
+            // };
+        
+            m_vertices = {
+                /* 0*/ {{0, 0}, vertexColor, {0, 0}},
+                /* 1*/ {{middleRect.left*ratio, 0}, vertexColor, {middleRect.left, 0}},
+                /* 2*/ {{0, middleRect.top*ratio}, vertexColor, {0, middleRect.top}},
+                /* 3*/ {{middleRect.left*ratio, middleRect.top*ratio}, vertexColor, {middleRect.left, middleRect.top}},
+                /* 4*/ {{0, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {0, middleRect.top + middleRect.height}},
+                /* 5*/ {{middleRect.left*ratio, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {middleRect.left, middleRect.top + middleRect.height}},
+                /* 6*/ {{0, m_size.y}, vertexColor, {0, textureSize.y}},
+                /* 7*/ {{middleRect.left*ratio, m_size.y}, vertexColor, {middleRect.left, textureSize.y}},
+                /* 8*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, m_size.y}, vertexColor, {middleRect.left + middleRect.width, textureSize.y}},
+                /* 9*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {middleRect.left + middleRect.width, middleRect.top + middleRect.height}},
+                /*10*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, middleRect.top*ratio}, vertexColor, {middleRect.left + middleRect.width, middleRect.top}},
+                /*11*/ {{m_size.x - (textureSize.x - middleRect.left - middleRect.width)*ratio, 0}, vertexColor, {middleRect.left + middleRect.width, 0}},
+                /*12*/ {{m_size.x, 0}, vertexColor, {textureSize.x, 0}},
+                /*13*/ {{m_size.x, middleRect.top*ratio}, vertexColor, {textureSize.x, middleRect.top}},
+                /*14*/ {{m_size.x, m_size.y - (textureSize.y - middleRect.top - middleRect.height)*ratio}, vertexColor, {textureSize.x, middleRect.top + middleRect.height}},
+                /*15*/ {{m_size.x, m_size.y}, vertexColor, {textureSize.x, textureSize.y}}
+            };
+            m_indices = {
+                0, 2, 1,
+                1, 2, 3,
+                2, 4, 3,
+                3, 4, 5,
+                4, 6, 5,
+                6, 7, 5,
+                7, 8, 5,
+                8, 9, 5,
+                5, 9, 3,
+                9, 10, 3,
+                3, 10, 1,
+                1, 10, 11,
+                11, 10, 12,
+                12, 10, 13,
+                10, 13, 9,
+                13, 9, 14,
+                9, 8, 14,
+                8, 15, 14
+            };
+            break;
+        }
         };
 
         if (texCoordOffset != Vector2u{})

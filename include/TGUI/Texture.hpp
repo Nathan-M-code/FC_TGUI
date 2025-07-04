@@ -56,7 +56,19 @@ TGUI_MODULE_EXPORT namespace tgui
     class TGUI_API Texture
     {
     public:
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @brief The way the image should be scaled
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        enum class ScalingType
+        {
+            Normal,              //!< The image is not split and scaled normally
+            Horizontal,          //!< Image is split in Left, Middle and Right parts. Left and Right keep ratio, Middle gets stretched
+            Vertical,            //!< Image is split in Top, Middle and Bottom parts. Top and Bottom keep ratio, Middle gets stretched
+            AutoScaledNineSlice, //!< Image is split in 9 parts. Corners are scaled to keep ratio given by middleRect, depending on sprite size
+            ScaledNineSlice      //!< Image is split in 9 parts. Corners are scaled with value given in tgui::Texture
+        };
 
+    public:
         using CallbackFunc = std::function<void(std::shared_ptr<TextureData>)>;
         using BackendTextureLoaderFunc = std::function<bool(BackendTexture&, const String&, bool smooth)>;
         using TextureLoaderFunc = std::function<std::shared_ptr<TextureData>(Texture&, const String&, bool smooth)>;
@@ -311,6 +323,12 @@ TGUI_MODULE_EXPORT namespace tgui
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         TGUI_NODISCARD UIntRect getMiddleRect() const;
 
+        
+        void setScalingType(Texture::ScalingType scalingType);
+        void setNineSliceRatio(float ratio);
+        TGUI_NODISCARD Texture::ScalingType getScalingType() const;
+        TGUI_NODISCARD float getNineSliceRatio() const;
+
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @brief Checks if a certain pixel is transparent
         ///
@@ -431,6 +449,9 @@ TGUI_MODULE_EXPORT namespace tgui
 
         std::shared_ptr<TextureData> m_data = nullptr;
         Color m_color = Color::White;
+        
+        ScalingType m_scalingType = ScalingType::Normal;
+        float m_nineSliceRatio = 1.f;
 
         UIntRect m_partRect;
         UIntRect m_middleRect;
