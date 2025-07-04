@@ -260,7 +260,7 @@ namespace tgui
 
     bool Sprite::isTransparentPixel(Vector2f pos) const
     {
-        if (!isSet() || (m_size.x == 0) || (m_size.y == 0))
+        if (!isSet() || (m_size.x <= 0) || (m_size.y <= 0))
             return true;
         if (!m_texture.getData()->backendTexture)
             return false;
@@ -303,40 +303,36 @@ namespace tgui
             }
             case Texture::ScalingType::Horizontal:
             {
-                if (pos.x >= m_size.x - (imageSize.x - middleRect.left - middleRect.width) * (m_size.y / imageSize.y))
-                {
-                    float xDiff = pos.x - (m_size.x - (imageSize.x - middleRect.left - middleRect.width) * (m_size.y / imageSize.y));
-                    pixel.x = middleRect.left + middleRect.width + (xDiff / m_size.y * imageSize.y);
-                }
-                else if (pos.x >= middleRect.left * (m_size.y / imageSize.y))
-                {
-                    float xDiff = pos.x - (middleRect.left * (m_size.y / imageSize.y));
-                    pixel.x = middleRect.left + (xDiff / (m_size.x - ((imageSize.x - middleRect.width) * (m_size.y / imageSize.y))) * middleRect.width);
-                }
+                const float scaleFactor = (m_size.x >= (imageSize.x - middleRect.width) * (m_size.y / imageSize.y))
+                    ? (m_size.y / imageSize.y)
+                    : (m_size.x / (imageSize.x - middleRect.width));
+                const float middleLeft = middleRect.left * scaleFactor;
+                const float middleRight = m_size.x - (imageSize.x - middleRect.left - middleRect.width) * scaleFactor;
+
+                if (pos.x >= middleRight)
+                    pixel.x = (middleRect.left + middleRect.width) + ((pos.x - middleRight) / scaleFactor);
+                else if (pos.x >= middleLeft)
+                    pixel.x = middleRect.left + (pos.x - middleLeft) / (middleRight - middleLeft) * middleRect.width;
                 else // Mouse on the left part
-                {
-                    pixel.x = pos.x / m_size.y * imageSize.y;
-                }
+                    pixel.x = pos.x / scaleFactor;
 
                 pixel.y = pos.y / m_size.y * imageSize.y;
                 break;
             }
             case Texture::ScalingType::Vertical:
             {
-                if (pos.y >= m_size.y - (imageSize.y - middleRect.top - middleRect.height) * (m_size.x / imageSize.x))
-                {
-                    float yDiff = pos.y - (m_size.y - (imageSize.y - middleRect.top - middleRect.height) * (m_size.x / imageSize.x));
-                    pixel.y = middleRect.top + middleRect.height + (yDiff / m_size.x * imageSize.x);
-                }
-                else if (pos.y >= middleRect.top * (m_size.x / imageSize.x))
-                {
-                    float yDiff = pos.y - (middleRect.top * (m_size.x / imageSize.x));
-                    pixel.y = middleRect.top + (yDiff / (m_size.y - ((imageSize.y - middleRect.height) * (m_size.x / imageSize.x))) * middleRect.height);
-                }
+                const float scaleFactor = (m_size.y >= (imageSize.y - middleRect.height) * (m_size.x / imageSize.x))
+                    ? (m_size.x / imageSize.x)
+                    : (m_size.y / (imageSize.y - middleRect.height));
+                const float middleTop = middleRect.top * scaleFactor;
+                const float middleBottom = m_size.y - ((imageSize.y - middleRect.top - middleRect.height) * scaleFactor);
+
+                if (pos.y >= middleBottom)
+                    pixel.y = (middleRect.top + middleRect.height) + ((pos.y - middleBottom) / scaleFactor);
+                else if (pos.y >= middleTop)
+                    pixel.y = middleRect.top + (pos.y - middleTop) / (middleBottom - middleTop) * middleRect.height;
                 else // Mouse on the top part
-                {
-                    pixel.y = pos.y / m_size.x * imageSize.x;
-                }
+                    pixel.y = pos.y / scaleFactor;
 
                 pixel.x = pos.x / m_size.x * imageSize.x;
                 break;

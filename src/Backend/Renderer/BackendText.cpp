@@ -322,7 +322,9 @@ namespace tgui
                 continue;
 
             // Apply the kerning offset
-            x += m_font->getKerning(prevChar, curChar, m_characterSize, isBold);
+            const float kerning = m_font->getKerning(prevChar, curChar, m_characterSize, isBold);
+            if ((prevChar != U'\n') || (kerning < 0))
+                x += kerning;
 
             // If we're using the underlined style and there's a new line, draw a line
             if (isUnderlined && (curChar == U'\n' && prevChar != U'\n'))
@@ -355,9 +357,16 @@ namespace tgui
 
                 switch (curChar)
                 {
-                    case U' ':  x += whitespaceWidth;     break;
-                    case U'\t': x += whitespaceWidth * 4; break;
-                    case U'\n': y += lineSpacing; x = 0;  break;
+                    case U' ':
+                        x += whitespaceWidth;
+                        break;
+                    case U'\t':
+                        x += whitespaceWidth * 4;
+                        break;
+                    case U'\n':
+                        x = 0;
+                        y += lineSpacing;
+                        break;
                 }
 
                 // Next glyph, no need to create a quad for whitespace

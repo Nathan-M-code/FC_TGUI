@@ -44,7 +44,7 @@ namespace tgui
     {
         if (initRenderer)
         {
-            m_renderer = aurora::makeCopied<LabelRenderer>();
+            m_renderer = makeCopied<LabelRenderer>();
             setRenderer(Theme::getDefault()->getRendererNoThrow(m_type));
 
             setTextSize(getGlobalTextSize());
@@ -80,21 +80,21 @@ namespace tgui
 
     LabelRenderer* Label::getSharedRenderer()
     {
-        return aurora::downcast<LabelRenderer*>(Widget::getSharedRenderer());
+        return downcast<LabelRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const LabelRenderer* Label::getSharedRenderer() const
     {
-        return aurora::downcast<const LabelRenderer*>(Widget::getSharedRenderer());
+        return downcast<const LabelRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     LabelRenderer* Label::getRenderer()
     {
-        return aurora::downcast<LabelRenderer*>(Widget::getRenderer());
+        return downcast<LabelRenderer*>(Widget::getRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ namespace tgui
 
     void Label::mouseMoved(Vector2f pos)
     {
-        if (m_scrollbar->isShown() && ((m_scrollbar->isMouseDown() && m_scrollbar->isMouseDownOnThumb()) || m_scrollbar->isMouseOnWidget(pos - getPosition())))
+        if (m_scrollbar->isShown() && (m_scrollbar->isMouseDown() || m_scrollbar->isMouseOnWidget(pos - getPosition())))
             m_scrollbar->mouseMoved(pos - getPosition());
         else
         {

@@ -43,7 +43,7 @@ namespace tgui
     {
         if (initRenderer)
         {
-            m_renderer = aurora::makeCopied<ListBoxRenderer>();
+            m_renderer = makeCopied<ListBoxRenderer>();
             setRenderer(Theme::getDefault()->getRendererNoThrow(m_type));
 
             setTextSize(getGlobalTextSize());
@@ -74,21 +74,21 @@ namespace tgui
 
     ListBoxRenderer* ListBox::getSharedRenderer()
     {
-        return aurora::downcast<ListBoxRenderer*>(Widget::getSharedRenderer());
+        return downcast<ListBoxRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const ListBoxRenderer* ListBox::getSharedRenderer() const
     {
-        return aurora::downcast<const ListBoxRenderer*>(Widget::getSharedRenderer());
+        return downcast<const ListBoxRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ListBoxRenderer* ListBox::getRenderer()
     {
-        return aurora::downcast<ListBoxRenderer*>(Widget::getRenderer());
+        return downcast<ListBoxRenderer*>(Widget::getRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -735,7 +735,7 @@ namespace tgui
             mouseEnteredWidget();
 
         // Check if the mouse event should go to the scrollbar
-        if ((m_scrollbar->isMouseDown() && m_scrollbar->isMouseDownOnThumb()) || m_scrollbar->isMouseOnWidget(pos))
+        if (m_scrollbar->isMouseDown() || m_scrollbar->isMouseOnWidget(pos))
         {
             updateHoveringItem(-1);
             m_scrollbar->mouseMoved(pos);

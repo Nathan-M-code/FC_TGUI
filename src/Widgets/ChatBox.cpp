@@ -39,7 +39,7 @@ namespace tgui
     {
         if (initRenderer)
         {
-            m_renderer = aurora::makeCopied<ChatBoxRenderer>();
+            m_renderer = makeCopied<ChatBoxRenderer>();
             setRenderer(Theme::getDefault()->getRendererNoThrow(m_type));
 
             setTextSize(getGlobalTextSize());
@@ -72,21 +72,21 @@ namespace tgui
 
     ChatBoxRenderer* ChatBox::getSharedRenderer()
     {
-        return aurora::downcast<ChatBoxRenderer*>(Widget::getSharedRenderer());
+        return downcast<ChatBoxRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const ChatBoxRenderer* ChatBox::getSharedRenderer() const
     {
-        return aurora::downcast<const ChatBoxRenderer*>(Widget::getSharedRenderer());
+        return downcast<const ChatBoxRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     ChatBoxRenderer* ChatBox::getRenderer()
     {
-        return aurora::downcast<ChatBoxRenderer*>(Widget::getRenderer());
+        return downcast<ChatBoxRenderer*>(Widget::getRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +375,7 @@ namespace tgui
             mouseEnteredWidget();
 
         // Pass the event to the scrollbar when the mouse is on top of it or when we are dragging its thumb
-        if (((m_scrollbar->isMouseDown()) && (m_scrollbar->isMouseDownOnThumb())) || m_scrollbar->isMouseOnWidget(pos - getPosition()))
+        if (m_scrollbar->isMouseDown() || m_scrollbar->isMouseOnWidget(pos - getPosition()))
             m_scrollbar->mouseMoved(pos - getPosition());
         else
             m_scrollbar->mouseNoLongerOnWidget();

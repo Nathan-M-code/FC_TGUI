@@ -86,6 +86,7 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
         m_partRect        {other.m_partRect},
         m_middleRect      {other.m_middleRect},
         m_id              {other.m_id},
+        m_scaledNineSlice {other.m_scaledNineSlice},
         m_copyCallback    {other.m_copyCallback},
         m_destructCallback{other.m_destructCallback},
         m_scalingType     {other.m_scalingType},
@@ -106,6 +107,7 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
         m_partRect        {std::move(other.m_partRect)},
         m_middleRect      {std::move(other.m_middleRect)},
         m_id              {std::move(other.m_id)},
+        m_scaledNineSlice {std::move(other.m_scaledNineSlice)},
         m_copyCallback    {std::move(other.m_copyCallback)},
         m_destructCallback{std::move(other.m_destructCallback)},
         m_scalingType     {std::move(other.m_scalingType)},
@@ -140,6 +142,7 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
             std::swap(m_partRect,         temp.m_partRect);
             std::swap(m_middleRect,       temp.m_middleRect);
             std::swap(m_id,               temp.m_id);
+            std::swap(m_scaledNineSlice,  temp.m_scaledNineSlice);
             std::swap(m_copyCallback,     temp.m_copyCallback);
             std::swap(m_destructCallback, temp.m_destructCallback);
             std::swap(m_scalingType,      temp.m_scalingType);
@@ -163,6 +166,7 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
             m_partRect         = std::move(other.m_partRect);
             m_middleRect       = std::move(other.m_middleRect);
             m_id               = std::move(other.m_id);
+            m_scaledNineSlice  = std::move(other.m_scaledNineSlice);
             m_copyCallback     = std::move(other.m_copyCallback);
             m_destructCallback = std::move(other.m_destructCallback);
             m_scalingType      = std::move(other.m_scalingType);
@@ -399,13 +403,34 @@ TGUI_IGNORE_DEPRECATED_WARNINGS_END
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    void Texture::setScaledNineSlice(bool scaled)
+    {
+        m_scaledNineSlice = scaled;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool Texture::getScaledNineSlice() const
+    {
+        return m_scaledNineSlice;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     bool Texture::isTransparentPixel(Vector2u pixel) const
     {
         if (!m_data || !m_data->backendTexture)
             return false;
 
         const UIntRect& partRect = getPartRect();
-        TGUI_ASSERT(pixel.x < partRect.width && pixel.y < partRect.height, "Texture::isTransparentPixel called with pixel outside texture rectangle");
+        TGUI_ASSERT(pixel.x <= partRect.width && pixel.y <= partRect.height, "Texture::isTransparentPixel called with pixel outside texture rectangle");
+
+        // Due to float rounding errors it could happen that we previously thought the position would still be on top of the image,
+        // but now that we are using integers we can tell that the position is just outside the image.
+        if (pixel.x == partRect.width)
+            return false;
+        if (pixel.y == partRect.height)
+            return false;
 
         return m_data->backendTexture->isTransparentPixel({pixel.x + partRect.left, pixel.y + partRect.top});
     }

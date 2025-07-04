@@ -246,7 +246,7 @@ namespace tgui
     {
         if (initRenderer)
         {
-            m_renderer = aurora::makeCopied<TreeViewRenderer>();
+            m_renderer = makeCopied<TreeViewRenderer>();
             setRenderer(Theme::getDefault()->getRendererNoThrow(m_type));
 
             setTextSize(getGlobalTextSize());
@@ -363,21 +363,21 @@ namespace tgui
 
     TreeViewRenderer* TreeView::getSharedRenderer()
     {
-        return aurora::downcast<TreeViewRenderer*>(Widget::getSharedRenderer());
+        return downcast<TreeViewRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     const TreeViewRenderer* TreeView::getSharedRenderer() const
     {
-        return aurora::downcast<const TreeViewRenderer*>(Widget::getSharedRenderer());
+        return downcast<const TreeViewRenderer*>(Widget::getSharedRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     TreeViewRenderer* TreeView::getRenderer()
     {
-        return aurora::downcast<TreeViewRenderer*>(Widget::getRenderer());
+        return downcast<TreeViewRenderer*>(Widget::getRenderer());
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1006,9 +1006,9 @@ namespace tgui
         if (!m_mouseHover)
             mouseEnteredWidget();
 
-        if ((m_verticalScrollbar->isMouseDown() && m_verticalScrollbar->isMouseDownOnThumb()) || m_verticalScrollbar->isMouseOnWidget(pos))
+        if (m_verticalScrollbar->isMouseDown() || m_verticalScrollbar->isMouseOnWidget(pos))
             m_verticalScrollbar->mouseMoved(pos);
-        else if ((m_horizontalScrollbar->isMouseDown() && m_horizontalScrollbar->isMouseDownOnThumb()) || m_horizontalScrollbar->isMouseOnWidget(pos))
+        else if (m_horizontalScrollbar->isMouseDown() || m_horizontalScrollbar->isMouseOnWidget(pos))
             m_horizontalScrollbar->mouseMoved(pos);
         else
         {
